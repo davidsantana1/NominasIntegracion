@@ -1,0 +1,108 @@
+﻿@{
+	ViewData["Title"] = "Editar Transacción";
+}
+@model RegistroTransaccion
+
+<div class="card shadow border-0 mb-4 mt-2">
+	<div class="card-header bg-secondary bg-gradient ml-0 py-3">
+		<div class="col-12 text-center">
+			<h2 class="text-white py-2">Editar Transacción</h2>
+		</div>
+	</div>
+	<div class="row">
+	</div>
+	<div class="card-body p-4">
+		<form class="row" method="post">
+			<input asp-for="Id" hidden />
+            <div class="border p-3">
+                @* <div asp-validation-summary="ModelOnly"></div> *@
+                <div class="form-floating py-2 col-12">
+                    <select asp-for="EmpleadoId" class="form-select border-0 shadow" id="empleadoId" asp-items="@ViewBag.empleados">
+                        <option disabled selected>--Selecciona el Empleado--</option>
+                    </select>
+                    <label class="ms-2">Empleado</label>
+                    <span asp-validation-for="EmpleadoId" class="text-danger"></span>
+                </div>
+
+                <div class="form-floating py-2 col-12">
+                    <select asp-for="TipoTransaccion" class="form-select border-0 shadow" id="tipoTransaccion">
+                        <option disabled selected>--Selecciona el Tipo de Transacción--</option>
+                        <option value="Ingreso">Ingreso</option>
+                        <option value="Deducción">Deducción</option>
+                    </select>
+                    <label asp-for="TipoTransaccion" class="ms-2"></label>
+                    <span asp-validation-for="TipoTransaccion" class="text-danger"></span>
+                </div>
+
+                <div class="form-floating py-2 col-12" id="ingresoField">
+                    <input asp-for="Ingreso" class="form-control border-0 shadow">
+                    <label class="ms-2">Monto</label>
+                    <span asp-validation-for="Ingreso" class="text-danger"></span>
+                </div>
+
+                <div class="form-floating py-2 col-12" id="deduccionField">
+                    <input asp-for="Deduccion" class="form-control border-0 shadow">
+                    <label class="ms-2">Monto</label>
+                    <span asp-validation-for="Deduccion" class="text-danger"></span>
+                </div>
+
+                <div class="form-floating py-2 col-12">
+                    <input asp-for="Fecha" class="form-control border-0 shadow">
+                    <label asp-for="Fecha" class="ms-2"></label>
+                    <span asp-validation-for="Fecha" class="text-danger"></span>
+                </div>
+
+                <div class="form-floating py-2 col-12">
+                    <input asp-for="Estado" class="form-control border-0 shadow">
+                    <label asp-for="Estado" class="ms-2"></label>
+                    <span asp-validation-for="Estado" class="text-danger"></span>
+                </div>
+
+                <div class="row pt-2">
+                    <div class="col-6 col-md-3">
+                        <button type="submit" class="btn btn-primary form-control">Crear</button>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <a asp-controller="RegistroTransaccion" asp-action="Index" class="btn btn-outline-primary border form-control">Volver a la Lista</a>
+                    </div>
+                </div>
+            </div>
+		</form>
+
+	</div>
+</div>
+
+
+
+@section Scripts {
+	@{
+		<partial name="_ValidationScriptsPartial" />
+	}
+	<script>
+		document.addEventListener('DOMContentLoaded', function () {
+			var tipoTransaccionSelect = document.getElementById('tipoTransaccion');
+			var ingresoField = document.getElementById('ingresoField');
+			var deduccionField = document.getElementById('deduccionField');
+
+			function updateFields() {
+				var selectedValue = tipoTransaccionSelect.value;
+
+				if (selectedValue === 'Ingreso') {
+					ingresoField.style.display = 'block';
+					deduccionField.style.display = 'none';
+				} else if (selectedValue === 'Deducción') {
+					ingresoField.style.display = 'none';
+					deduccionField.style.display = 'block';
+				} else {
+					ingresoField.style.display = 'none';
+					deduccionField.style.display = 'none';
+				}
+			}
+
+			tipoTransaccionSelect.addEventListener('change', updateFields);
+
+			// Inicializa el estado de los campos según el valor inicial
+			updateFields();
+		});
+	</script>
+}

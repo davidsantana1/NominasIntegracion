@@ -1,0 +1,108 @@
+﻿@{
+    ViewData["Title"] = "Inicio";
+}
+
+<div class= mb-5">
+    <h1 class="text-center mb-4">Sistema de Gestión de Nóminas</h1>
+</div>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous" />
+
+<div class="row mb-4">
+    <div class="col-sm-3 mb-3 mb-sm-0">
+        <div class="card align-items-center">
+            <div class="card-body text-center">
+                <div class="d-flex gap-2 align-items-center mb-2">
+                    <i class="bi bi-person-fill fa-2x"></i>
+                    <h5 class="card-title mb-0">Empleados</h5>
+                </div>
+                <a asp-area="Admin" asp-controller="Empleado" asp-action="Index" class="btn btn-danger">Ver Listado</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-3 mb-3 mb-sm-0">
+        <div class="card align-items-center">
+            <div class="card-body text-center">
+                <div class="d-flex gap-2 align-items-center mb-2">
+                    <i class="bi bi-building-fill fa-2x"></i>
+                    <h5 class="card-title mb-0">Departamentos</h5>
+                </div>
+                <a asp-area="Admin" asp-controller="Departamento" asp-action="Index" class="btn btn-danger">Ver Listado</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-3 mb-3 mb-sm-0">
+        <div class="card align-items-center">
+            <div class="card-body text-center">
+                <div class="d-flex gap-2 align-items-center mb-2">
+                    <i class="bi bi-briefcase-fill fa-2x"></i>
+                    <h5 class="card-title mb-0">Puestos</h5>
+                </div>
+                <a asp-area="Admin" asp-controller="Puesto" asp-action="Index" class="btn btn-danger">Ver Listado</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-3 mb-3 mb-sm-0">
+        <div class="card align-items-center">
+            <div class="card-body text-center">
+                <div class="d-flex gap-2 align-items-center mb-2">
+                    <i class="bi bi-cash-coin fa-2x"></i>
+                    <h5 class="card-title mb-0">Transacciones</h5>
+                </div>
+                <a asp-area="Admin" asp-controller="RegistroTransaccion" asp-action="Index" class="btn btn-danger">Ver Listado</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-sm-3 mb-3 mb-sm-0">
+        <div class="card align-items-center">
+            <div class="card-body text-center">
+                <div class="d-flex gap-2 align-items-center mb-2">
+                    <i class="bi bi-graph-up-arrow text-success fa-2x"></i>
+                    <h5 class="card-title mb-0">Ingresos</h5>
+                </div>
+                <a asp-area="Admin" asp-controller="TipoDeIngreso" asp-action="Index" class="btn btn-danger">Ver Listado</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-3 mb-3 mb-sm-0">
+        <div class="card align-items-center">
+            <div class="card-body text-center">
+                <div class="d-flex gap-2 align-items-center mb-2">
+                    <i class="bi text-danger bi-graph-down-arrow fa-2x"></i>
+                    <h5 class="card-title mb-0">Deducciones</h5>
+                </div>
+                <a asp-area="Admin" asp-controller="TipoDeDeduccion" asp-action="Index" class="btn btn-danger">Ver Listado</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-sm-3 mb-3 mb-sm-0">
+        <div class="card align-items-center">
+            <div class="card-body text-center">
+                <div class="d-flex gap-2 align-items-center mb-2">
+                    <i class="bi bi-calculator-fill fa-2x"></i>
+                    <h5 class="card-title mb-0">Calcular Nóminas</h5>
+                </div>
+                <a asp-area="Admin" asp-controller="Nomina" asp-action="Index" class="btn btn-danger">Calcular</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-sm-3 mb-3 mb-sm-0">
+        <div class="card align-items-center">
+            <div class="card-body text-center">
+                <div class="d-flex gap-2 align-items-center mb-2">
+                    <i class="bi bi-person-lines-fill fa-2x"></i>
+                    <h5 class="card-title mb-0">Reporte de Nómina</h5>
+                </div>
+                <a asp-area="Admin" asp-controller="ReporteNomina" asp-action="Index" class="btn btn-danger">Ver Listado</a>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+

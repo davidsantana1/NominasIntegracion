@@ -1,0 +1,78 @@
+﻿@model List<TipoDeDeduccion>
+@{
+    ViewData["Title"] = "Tipos de Deduccion";
+}
+
+<div class="card shadow border-0 mt-4">
+	<div class="card-header bg-secondary bg-gradient ml-0 py-3">
+		<div class="col-12 text-center">
+			<h2 class="text-white py-2">Lista de Tipos de Deduccion</h2>
+		</div>
+	</div>
+	<div class="row">
+	</div>
+	<div class="card-body p-4">
+		<div class="row pb-3">
+			<div class="col-6">
+			</div>
+			<div class="col-6 text-end">
+				<a asp-controller="TipoDeDeduccion" asp-action="Crear" class="btn btn-primary">
+					<i class="bi bi-plus-circle"></i> Crear Nuevo Tipo de Deduccion
+				</a>
+			</div>
+		</div>
+
+		<div class="table-responsive-sm">
+			<table class="table table-bordered table-striped">
+				<thead>
+					<tr>
+						<th scope="col">#</th>
+						<th scope="col">Nombre</th>
+						<th scope="col">¿Depende del Salario?</th>
+						<th scope="col">Porcentaje</th>
+						<th scope="col">Estado</th>
+						<th></th>
+					</tr>
+				</thead>
+
+				<tbody>
+					@foreach (var tipoDeDeduccion in Model)
+					{
+						<tr>
+							<td>@tipoDeDeduccion.Id</td>
+							<td>@tipoDeDeduccion.Nombre</td>
+							@if (tipoDeDeduccion.DependeDeSalario == true)
+							{
+								<td>Si</td>
+							}
+							else
+							{
+								<td>No</td>
+							}
+							<td>@tipoDeDeduccion.Porcentaje%</td>
+							@if (tipoDeDeduccion.Estado == true)
+							{
+								<td>Activo</td>
+							}
+							else
+							{
+								<td>Inactivo</td>
+							}
+							<td class="d-flex justify-content-end">
+								<div class="w-100">
+									<a asp-controller="TipoDeDeduccion" asp-action="Editar" asp-route-id="@tipoDeDeduccion.Id" class="btn btn-primary mx-2">
+										<i class="bi bi-pencil-square"></i> Editar
+									</a>
+									<a asp-controller="TipoDeDeduccion" asp-action="Eliminar" asp-route-id="@tipoDeDeduccion.Id" class="btn btn-danger mx-2">
+										<i class="bi bi-trash-fill"></i> Eliminar
+									</a>
+								</div>
+							</td>
+						</tr>
+					}
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>
+

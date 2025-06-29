@@ -1,0 +1,55 @@
+﻿@model IEnumerable<Nomina>
+
+<div class="card shadow border-0 mt-4">
+    <div class="card-header bg-secondary bg-gradient ml-0 py-3">
+        <div class="col-12 text-center">
+            <h2 class="text-white py-2">Reporte de Nómina Total</h2>
+        </div>
+    </div>
+    <div class="card-body p-4">
+        @if (Model != null && Model.Any())
+        {
+            <div class="table-responsive-sm">
+                <table class="table table-bordered table-striped">
+                    <thead>
+                        <tr>
+                            <th scope="col">Empleado</th>
+                            <th scope="col">Salario Bruto</th>
+                            <th scope="col">Total Deducciones</th>
+                            <th scope="col">Total Ingresos</th>
+                            <th scope="col">Salario Neto</th>
+                            <th scope="col">Fecha</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var nomina in Model)
+                        {
+                            <tr>
+                                <td>@nomina.Empleado.Nombre</td>
+                                <td>RD$ @nomina.SalarioBruto.ToString("N2")</td>
+                                <td>RD$ @nomina.TotalDeducciones.ToString("N2")</td>
+                                <td>RD$ @nomina.TotalIngresos.ToString("N2")</td>
+                                <td>RD$ @nomina.SalarioNeto.ToString("N2")</td>
+                                <td>@nomina.FechaGeneracion.ToString("d")</td>
+                            </tr>
+                        }
+                    </tbody>
+                    <tfoot class="table-dark">
+                        <tr>
+                            <th colspan="1">Total</th>
+                            <th>RD$ @Model.Sum(n => n.SalarioBruto).ToString("N2")</th>
+                            <th>RD$ @Model.Sum(n => n.TotalDeducciones).ToString("N2")</th>
+                            <th>RD$ @Model.Sum(n => n.TotalIngresos).ToString("N2")</th>
+                            <th>RD$ @Model.Sum(n => n.SalarioNeto).ToString("N2")</th>
+                            <th></th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        }
+        else
+        {
+            <p>No hay datos de nómina disponibles.</p>
+        }
+    </div>
+</div>

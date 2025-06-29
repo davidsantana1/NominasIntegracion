@@ -1,0 +1,35 @@
+﻿<div id="toastBox"></div>
+
+<script>
+	let toastBox = document.getElementById('toastBox');
+	function showToast(message) {
+		let toast = document.createElement('div');
+		toast.classList.add('toast-message')
+		toast.innerHTML = message;
+		toastBox.appendChild(toast);
+
+		if (message.includes('x-circle')) {
+			toast.classList.add('error');
+		}
+
+		setTimeout(() => {
+			toast.remove()
+		}, 6000);
+	}
+
+</script>
+
+
+@if (TempData["success"] != null)
+{
+	<script type="text/javascript">
+		showToast('<i class="bi bi-check-circle-fill"></i> @TempData["success"]')
+	</script>
+
+}
+@if (TempData["error"] != null)
+{
+	<script type="text/javascript">
+		showToast('<i class="bi bi-x-circle-fill"></i> @TempData["error"]')
+	</script>
+}

@@ -1,0 +1,17 @@
+﻿@model NominaViewModel
+
+<h2>Seleccionar Empleado para Calcular Nómina</h2>
+
+<form asp-action="Calcular" method="get">
+    <div class="form-group">
+        <label for="empleadoId">Empleado</label>
+        <select id="empleadoId" name="empleadoId" class="form-control mb-3" required>
+            <option value="">Selecciona un empleado</option>
+            @foreach (var empleado in Model.Empleados)
+            {
+                <option value="@empleado.Id">@empleado.Nombre</option>
+            }
+        </select>
+    </div>
+    <button type="submit" class="btn btn-primary">Calcular Nómina</button>
+</form>

@@ -1,0 +1,64 @@
+﻿@model Nomina
+
+<h2>Nómina del Empleado @Model.Empleado.Nombre</h2>
+
+<p>Salario Bruto: RD$ @Model.SalarioBruto.ToString("N2")</p>
+
+<h3>Deducciones Detalladas</h3>
+<table class="table">
+    <thead class="table-dark">
+        <tr>
+            <th>Nombre</th>
+            <th>Monto</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model.DetallesDeducciones != null)
+        {
+            @foreach (var deduccion in Model.DetallesDeducciones)
+            {
+                <tr>
+                    <td>@deduccion.Nombre (@(((deduccion.Monto / Model.SalarioBruto) * 100).ToString("N2"))%)</td>
+                    <td>RD$ @deduccion.Monto.ToString("N2")</td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr><td colspan="2">No hay deducciones</td></tr>
+        }
+    </tbody>
+</table>
+<p>Total Deducciones: RD$ @Model.TotalDeducciones.ToString("N2")</p>
+
+<h3>Ingresos Detallados</h3>
+<table class="table">
+    <thead class="table-dark">
+        <tr>
+            <th>Nombre</th>
+            <th>Monto</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model.DetallesIngresos != null)
+        {
+            @foreach (var ingreso in Model.DetallesIngresos)
+            {
+                <tr>
+                    <td>@ingreso.Nombre (@(((ingreso.Monto / Model.SalarioBruto) * 100).ToString("N2"))%)</td>
+                    <td>RD$ @ingreso.Monto.ToString("N2")</td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr><td colspan="2">No hay ingresos</td></tr>
+        }
+    </tbody>
+</table>
+<p><span class="fw-bold">Total Ingresos:</span> RD$ @Model.TotalIngresos.ToString("N2")</p>
+
+<p><span class="fw-bold">Salario Neto:</span> RD$ @Model.SalarioNeto.ToString("N2")</p>
+<p><span class="fw-bold">Fechar:</span> @Model.FechaGeneracion.ToString("d")</p>
+
+<a asp-area="Admin" asp-controller="Nomina" asp-action="Index" class="btn btn-primary">Volver</a>

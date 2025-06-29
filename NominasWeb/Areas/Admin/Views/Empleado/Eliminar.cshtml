@@ -1,0 +1,71 @@
+﻿@{
+	ViewData["Title"] = "Eliminar Empleado";
+}
+@model Empleado
+
+<div class="card shadow border-0 mb-4 mt-2">
+	<div class="card-header bg-secondary bg-gradient ml-0 py-3">
+		<div class="col-12 text-center">
+			<h2 class="text-white py-2">Eliminar Empleado</h2>
+		</div>
+	</div>
+	<div class="row">
+	</div>
+	<div class="card-body p-4">
+		<form class="row" method="post">
+			<input asp-for="Id" hidden />
+			<div class="border p-3">
+				@* <div asp-validation-summary="ModelOnly"></div> *@
+				<div class="form-floating py-2 col-12">
+					<input disabled asp-for="Nombre" class="form-control border-0 shadow">
+					<label asp-for="Nombre" class="ms-2"></label>
+				</div>
+				<div class="form-floating py-2 col-12">
+					<input disabled asp-for="Cedula" class="form-control border-0 shadow">
+					<label asp-for="Cedula" class="ms-2"></label>
+				</div>
+				<div class="form-floating py-2 col-12">
+					<select disabled asp-for="DepartamentoId" class="form-select" id="departamentoId" asp-items="@ViewBag.departamentos">
+						<option disabled selected>--Selecciona el Departamento--</option>
+					</select>
+					<label asp-for="DepartamentoId" class="ms-2"></label>
+				</div>
+				<div class="form-floating py-2 col-12">
+					<select disabled asp-for="PuestoId" class="form-select" id="puestoId" asp-items="@ViewBag.puestos">
+						<option disabled selected>--Selecciona el Puesto--</option>
+					</select>
+					<label asp-for="PuestoId" class="ms-2"></label>
+				</div>
+				<div class="form-floating py-2 col-12">
+					<input disabled asp-for="SalarioMensual" class="form-control border-0 shadow">
+					<label asp-for="SalarioMensual" class="ms-2"></label>
+				</div>
+				<div class="form-floating py-2 col-12">
+					<select disabled asp-for="NominaId" class="form-select border-0 shadow" id="nominaId" asp-items="@ViewBag.departamentos">
+						<option disabled selected>--Selecciona la Nómina--</option>
+					</select>
+					<label asp-for="NominaId" class="ms-2"></label>
+				</div>
+
+				<div class="row pt-2">
+					<div class="col-6 col-md-3">
+						<button type="submit" class="btn btn-danger form-control">Eliminar</button>
+					</div>
+					<div class="col-6 col-md-3">
+						<a asp-controller="Empleado" asp-action="Index" class="btn btn-outline-primary border form-control">Volver a la Lista</a>
+					</div>
+				</div>
+			</div>
+
+		</form>
+
+	</div>
+</div>
+
+
+
+@section Scripts {
+	@{
+		<partial name="_ValidationScriptsPartial" />
+	}
+}
