@@ -84,7 +84,7 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser>
         EmpleadoId = 1, // Asegúrate de que este ID exista en la tabla Empleados
         Ingreso = 1000,
         Deduccion = 200,
-        TipoTransaccion = "Ingreso",
+        TipoTransaccion = TipoTransaccion.Ingreso,
         Fecha = new DateTime(2024, 9, 1),
         Monto = 800,
         Estado = "Aprobado"
@@ -95,7 +95,7 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser>
         EmpleadoId = 2, // Asegúrate de que este ID exista en la tabla Empleados
         Ingreso = 1200,
         Deduccion = 150,
-        TipoTransaccion = "Bono",
+        TipoTransaccion = TipoTransaccion.Ingreso,
         Fecha = new DateTime(2024, 9, 5),
         Monto = 1050,
         Estado = "Aprobado"
@@ -106,7 +106,7 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser>
         EmpleadoId = 1, // Asegúrate de que este ID exista en la tabla Empleados
         Ingreso = 500,
         Deduccion = 50,
-        TipoTransaccion = "Horas Extras",
+        TipoTransaccion = TipoTransaccion.Ingreso,
         Fecha = new DateTime(2024, 9, 10),
         Monto = 450,
         Estado = "Pendiente"

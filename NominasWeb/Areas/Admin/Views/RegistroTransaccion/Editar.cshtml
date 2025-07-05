@@ -1,21 +1,18 @@
 ﻿@{
-	ViewData["Title"] = "Editar Transacción";
+    ViewData["Title"] = "Editar Transacción";
 }
 @model RegistroTransaccion
 
 <div class="card shadow border-0 mb-4 mt-2">
-	<div class="card-header bg-secondary bg-gradient ml-0 py-3">
-		<div class="col-12 text-center">
-			<h2 class="text-white py-2">Editar Transacción</h2>
-		</div>
-	</div>
-	<div class="row">
-	</div>
-	<div class="card-body p-4">
-		<form class="row" method="post">
-			<input asp-for="Id" hidden />
+    <div class="card-header bg-secondary bg-gradient ml-0 py-3">
+        <div class="col-12 text-center">
+            <h2 class="text-white py-2">Editar Transacción</h2>
+        </div>
+    </div>
+    <div class="card-body p-4">
+        <form class="row" method="post">
+            <input asp-for="Id" hidden />
             <div class="border p-3">
-                @* <div asp-validation-summary="ModelOnly"></div> *@
                 <div class="form-floating py-2 col-12">
                     <select asp-for="EmpleadoId" class="form-select border-0 shadow" id="empleadoId" asp-items="@ViewBag.empleados">
                         <option disabled selected>--Selecciona el Empleado--</option>
@@ -25,10 +22,9 @@
                 </div>
 
                 <div class="form-floating py-2 col-12">
-                    <select asp-for="TipoTransaccion" class="form-select border-0 shadow" id="tipoTransaccion">
+                    <select asp-for="TipoTransaccion" class="form-select border-0 shadow" id="tipoTransaccion"
+                            asp-items="Html.GetEnumSelectList<TipoTransaccion>()">
                         <option disabled selected>--Selecciona el Tipo de Transacción--</option>
-                        <option value="Ingreso">Ingreso</option>
-                        <option value="Deducción">Deducción</option>
                     </select>
                     <label asp-for="TipoTransaccion" class="ms-2"></label>
                     <span asp-validation-for="TipoTransaccion" class="text-danger"></span>
@@ -36,13 +32,13 @@
 
                 <div class="form-floating py-2 col-12" id="ingresoField">
                     <input asp-for="Ingreso" class="form-control border-0 shadow">
-                    <label class="ms-2">Monto</label>
+                    <label asp-for="Ingreso" class="ms-2"></label>
                     <span asp-validation-for="Ingreso" class="text-danger"></span>
                 </div>
 
                 <div class="form-floating py-2 col-12" id="deduccionField">
                     <input asp-for="Deduccion" class="form-control border-0 shadow">
-                    <label class="ms-2">Monto</label>
+                    <label asp-for="Deduccion" class="ms-2"></label>
                     <span asp-validation-for="Deduccion" class="text-danger"></span>
                 </div>
 
@@ -53,56 +49,78 @@
                 </div>
 
                 <div class="form-floating py-2 col-12">
-                    <input asp-for="Estado" class="form-control border-0 shadow">
+                    <select asp-for="Estado" class="form-select border-0 shadow">
+                        <option value="">-- Selecciona el Estado --</option>
+                        <option value="Iniciada">Iniciada</option>
+                        <option value="En proceso">En proceso</option>
+                        <option value="Aprobado">Aprobado</option>
+                    </select>
                     <label asp-for="Estado" class="ms-2"></label>
                     <span asp-validation-for="Estado" class="text-danger"></span>
                 </div>
 
                 <div class="row pt-2">
                     <div class="col-6 col-md-3">
-                        <button type="submit" class="btn btn-primary form-control">Crear</button>
+                        <button type="submit" class="btn btn-primary form-control">Actualizar</button>
                     </div>
                     <div class="col-6 col-md-3">
                         <a asp-controller="RegistroTransaccion" asp-action="Index" class="btn btn-outline-primary border form-control">Volver a la Lista</a>
                     </div>
                 </div>
             </div>
-		</form>
-
-	</div>
+        </form>
+    </div>
 </div>
 
-
-
 @section Scripts {
-	@{
-		<partial name="_ValidationScriptsPartial" />
-	}
-	<script>
-		document.addEventListener('DOMContentLoaded', function () {
-			var tipoTransaccionSelect = document.getElementById('tipoTransaccion');
-			var ingresoField = document.getElementById('ingresoField');
-			var deduccionField = document.getElementById('deduccionField');
+    @{
+        <partial name="_ValidationScriptsPartial" />
+    }
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var tipoTransaccionSelect = document.getElementById('tipoTransaccion');
+            var ingresoField = document.getElementById('ingresoField');
+            var deduccionField = document.getElementById('deduccionField');
+            var estadoSelect = document.querySelector('select[name="Estado"]');
 
-			function updateFields() {
-				var selectedValue = tipoTransaccionSelect.value;
+            // Establecer valores iniciales
+            var currentType = '@Model.TipoTransaccion';
+            var currentEstado = '@Model.Estado';
 
-				if (selectedValue === 'Ingreso') {
-					ingresoField.style.display = 'block';
-					deduccionField.style.display = 'none';
-				} else if (selectedValue === 'Deducción') {
-					ingresoField.style.display = 'none';
-					deduccionField.style.display = 'block';
-				} else {
-					ingresoField.style.display = 'none';
-					deduccionField.style.display = 'none';
-				}
-			}
+            function updateFields() {
+                var selectedValue = tipoTransaccionSelect.value;
 
-			tipoTransaccionSelect.addEventListener('change', updateFields);
+                if (selectedValue === '@((int)TipoTransaccion.Ingreso)') {
+                    ingresoField.style.display = 'block';
+                    deduccionField.style.display = 'none';
+                } else if (selectedValue === '@((int)TipoTransaccion.Deduccion)') {
+                    ingresoField.style.display = 'none';
+                    deduccionField.style.display = 'block';
+                } else {
+                    ingresoField.style.display = 'none';
+                    deduccionField.style.display = 'none';
+                }
+            }
 
-			// Inicializa el estado de los campos según el valor inicial
-			updateFields();
-		});
-	</script>
+            // Configurar evento change
+            tipoTransaccionSelect.addEventListener('change', updateFields);
+
+            // Inicializar campos
+            updateFields();
+
+            // Establecer tipo actual
+            if (currentType === '@TipoTransaccion.Ingreso') {
+                ingresoField.style.display = 'block';
+                deduccionField.style.display = 'none';
+            } else if (currentType === '@TipoTransaccion.Deduccion') {
+                ingresoField.style.display = 'none';
+                deduccionField.style.display = 'block';
+            }
+
+            // Establecer estado actual
+            if (estadoSelect && currentEstado) {
+                estadoSelect.value = currentEstado;
+            }
+        });
+    </script>
 }
