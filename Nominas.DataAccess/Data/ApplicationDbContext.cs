@@ -99,17 +99,6 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser>
         Fecha = new DateTime(2024, 9, 5),
         Monto = 1050,
         Estado = "Aprobado"
-    },
-    new RegistroTransaccion
-    {
-        Id = 3,
-        EmpleadoId = 1, // Asegúrate de que este ID exista en la tabla Empleados
-        Ingreso = 500,
-        Deduccion = 50,
-        TipoTransaccion = 0,
-        Fecha = new DateTime(2024, 9, 10),
-        Monto = 450,
-        Estado = "Pendiente"
     }
 );
 
