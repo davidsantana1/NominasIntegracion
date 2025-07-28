@@ -12,7 +12,7 @@
 	<div class="row">
 	</div>
 	<div class="card-body p-4">
-		<form class="row" method="post">
+		<form id="crear-empleado-form" class="row" method="post">
 			<div class="border p-3">
 				@* <div asp-validation-summary="ModelOnly"></div> *@
 				<div class="form-floating py-2 col-12">
@@ -21,9 +21,9 @@
 					<span asp-validation-for="Nombre" class="text-danger"></span>
 				</div>
 				<div class="form-floating py-2 col-12">
-					<input asp-for="Cedula" class="form-control border-0 shadow">
+					<input asp-for="Cedula" id="cedula" class="form-control border-0 shadow">
 					<label asp-for="Cedula" class="ms-2"></label>
-					<span asp-validation-for="Cedula" class="text-danger"></span>
+					<span asp-validation-for="Cedula" id="cedula-error" class="text-danger"></span>
 				</div>
 				<div class="form-floating py-2 col-12">
 					<select asp-for="DepartamentoId" class="form-select border-0 shadow" id="departamentoId" asp-items="@ViewBag.departamentos">
@@ -70,7 +70,50 @@
 
 
 @section Scripts {
-	@{
-		<partial name="_ValidationScriptsPartial" />
-	}
+	<partial name="_ValidationScriptsPartial" />
+
+	<script>
+		function validarCedulaRD(cedula) {
+			cedula = cedula.replace(/-/g, '').trim();
+			if (cedula.length !== 11 || !/^\d+$/.test(cedula)) return false;
+
+			let total = 0;
+			let multiplicadores = [1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1];
+
+			for (let i = 0; i < 11; i++) {
+				let producto = parseInt(cedula[i]) * multiplicadores[i];
+				if (producto < 10) {
+					total += producto;
+				} else {
+					total += Math.floor(producto / 10) + (producto % 10);
+				}
+			}
+
+			return (total % 10 === 0);
+		}
+
+		document.addEventListener("DOMContentLoaded", function () {
+			const form = document.getElementById("crear-empleado-form");
+			const input = document.getElementById("cedula");
+			const error = document.getElementById("cedula-error");
+
+			form.addEventListener("submit", function (event) {
+				if (!validarCedulaRD(input.value)) {
+					event.preventDefault(); // ← Bloquea el envío
+					error.textContent = "La cédula dominicana no es válida.";
+					input.focus();
+				} else {
+					error.textContent = "";
+				}
+			});
+
+			input.addEventListener("blur", function () {
+				if (!validarCedulaRD(input.value)) {
+					error.textContent = "La cédula dominicana no es válida.";
+				} else {
+					error.textContent = "";
+				}
+			});
+		});
+	</script>
 }

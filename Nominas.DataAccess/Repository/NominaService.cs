@@ -1,142 +1,99 @@
-﻿using Nominas.DataAccess.Repository.IRepository;
+﻿using Microsoft.EntityFrameworkCore;
+using Nominas.DataAccess.Data;
+using Nominas.DataAccess.Repository.IRepository;
 using Nominas.Models;
 
 namespace Nominas.DataAccess.Repository
 {
-	public class NominaService
-	{
-		private readonly IRepository<Empleado> _empleadoRepository;
-		private readonly IRepository<TipoDeDeduccion> _deduccionRepository;
-		private readonly IRepository<TipoDeIngreso> _ingresoRepository;
+    public class NominaService
+    {
+        private readonly IRepository<Empleado> _empleadoRepository;
+        private readonly IRepository<TipoDeDeduccion> _deduccionRepository;
+        private readonly IRepository<TipoDeIngreso> _ingresoRepository;
+        private readonly IRepository<Nomina> _nominaRepository;
+        private readonly ApplicationDbContext _db;
 
-		public NominaService(IRepository<Empleado> empleadoRepository,
-							 IRepository<TipoDeDeduccion> deduccionRepository,
-							 IRepository<TipoDeIngreso> ingresoRepository)
-		{
-			_empleadoRepository = empleadoRepository;
-			_deduccionRepository = deduccionRepository;
-			_ingresoRepository = ingresoRepository;
-		}
+        public NominaService(
+            IRepository<Empleado> empleadoRepository,
+            IRepository<TipoDeDeduccion> deduccionRepository,
+            IRepository<TipoDeIngreso> ingresoRepository,
+            IRepository<Nomina> nominaRepository,
+            ApplicationDbContext db)
+        {
+            _empleadoRepository = empleadoRepository;
+            _deduccionRepository = deduccionRepository;
+            _ingresoRepository = ingresoRepository;
+            _nominaRepository = nominaRepository;
+            _db = db;
+        }
 
-		public Nomina CalcularNominaEmpleado(int empleadoId)
-		{
-			var empleado = _empleadoRepository.Get(u => u.Id == empleadoId);
-			if (empleado == null) throw new Exception("Empleado no encontrado");
+        public IEnumerable<Nomina> ObtenerNominasPorFecha(DateTime fechaDesde, DateTime fechaHasta)
+        {
+            var fechaHastaAjustada = fechaHasta.Date.AddDays(1).AddTicks(-1);
 
-			var salarioBruto = empleado.SalarioMensual;
+            var nominasFiltradas = _db.Nominas
+                .Include(n => n.Empleado)
+                .Where(n => n.FechaGeneracion >= fechaDesde.Date && n.FechaGeneracion <= fechaHastaAjustada)
+                .ToList();
 
-			var deducciones = _deduccionRepository.GetAll()
-				.Where(t => t.Estado && t.DependeDeSalario)
-				.ToList();
+            return nominasFiltradas;
+        }
 
-			var ingresos = _ingresoRepository.GetAll()
-				.Where(t => t.Estado && t.DependeDeSalario)
-				.ToList();
+        public int GenerarYGuardarNominaMensual()
+        {
+            var empleados = _empleadoRepository.GetAll().ToList();
+            var nominasNuevasCreadas = 0;
+            var mesActual = DateTime.Now.Month;
+            var anioActual = DateTime.Now.Year;
 
-			var detallesDeducciones = deducciones.Select(t => new DetalleDeduccion
-			{
-				Nombre = t.Nombre,
-				Monto = salarioBruto * ObtenerPorcentajeDeduccion(t.Id)
-			}).ToList();
+            var nominasDelMesExistentes = _nominaRepository.GetAll()
+                .Where(n => n.FechaGeneracion.Month == mesActual && n.FechaGeneracion.Year == anioActual)
+                .Select(n => n.EmpleadoId)
+                .ToHashSet();
 
-			var detallesIngresos = ingresos.Select(t => new DetalleIngreso
-			{
-				Nombre = t.Nombre,
-				Monto = salarioBruto * ObtenerPorcentajeIngreso(t.Id)
-			}).ToList();
+            foreach (var empleado in empleados)
+            {
+                if (!nominasDelMesExistentes.Contains(empleado.Id))
+                {
+                    var nuevaNomina = CalcularNominaEmpleado(empleado.Id);
+                    _nominaRepository.Add(nuevaNomina);
+                    nominasNuevasCreadas++;
+                }
+            }
 
-			var deduccionesTotales = detallesDeducciones.Sum(d => d.Monto);
-			var ingresosTotales = detallesIngresos.Sum(i => i.Monto);
-			var salarioNeto = salarioBruto + ingresosTotales - deduccionesTotales;
+            if (nominasNuevasCreadas > 0)
+            {
+                _db.SaveChanges();
+            }
 
-			return new Nomina
-			{
-				Empleado = empleado,
-				EmpleadoId = empleadoId,
-				SalarioBruto = salarioBruto,
-				TotalDeducciones = deduccionesTotales,
-				TotalIngresos = ingresosTotales,
-				SalarioNeto = salarioNeto,
-				FechaGeneracion = DateTime.Now,
-				DetallesDeducciones = detallesDeducciones,
-				DetallesIngresos = detallesIngresos
-			};
-		}
+            return nominasNuevasCreadas;
+        }
 
-		public IEnumerable<Nomina> CalcularNominaTotal()
-		{
-			var empleados = _empleadoRepository.GetAll().ToList();
-			var deducciones = _deduccionRepository.GetAll()
-				.Where(t => t.Estado && t.DependeDeSalario)
-				.ToList();
+        public Nomina CalcularNominaEmpleado(int empleadoId)
+        {
+            var empleado = _empleadoRepository.Get(u => u.Id == empleadoId);
+            if (empleado == null) throw new Exception("Empleado no encontrado");
 
-			var ingresos = _ingresoRepository.GetAll()
-				.Where(t => t.Estado && t.DependeDeSalario)
-				.ToList();
-			var todasLasNominas = new List<Nomina>();
+            var salarioBruto = empleado.SalarioMensual;
+            var deducciones = _deduccionRepository.GetAll().Where(t => t.Estado && t.DependeDeSalario).ToList();
+            var ingresos = _ingresoRepository.GetAll().Where(t => t.Estado && t.DependeDeSalario).ToList();
+            var detallesDeducciones = deducciones.Select(t => new DetalleDeduccion { Nombre = t.Nombre, Monto = salarioBruto * (t.Porcentaje / 100) }).ToList();
+            var detallesIngresos = ingresos.Select(t => new DetalleIngreso { Nombre = t.Nombre, Monto = salarioBruto * (t.Porcentaje / 100) }).ToList();
+            var deduccionesTotales = detallesDeducciones.Sum(d => d.Monto);
+            var ingresosTotales = detallesIngresos.Sum(i => i.Monto);
+            var salarioNeto = salarioBruto + ingresosTotales - deduccionesTotales;
 
-			foreach (var empleado in empleados)
-			{
-				var salarioBruto = empleado.SalarioMensual;
-
-				var detallesDeducciones = deducciones.Select(t => new DetalleDeduccion
-				{
-					Nombre = t.Nombre,
-					Monto = salarioBruto * ObtenerPorcentajeDeduccion(t.Id)
-				}).ToList();
-
-				var detallesIngresos = ingresos.Select(t => new DetalleIngreso
-				{
-					Nombre = t.Nombre,
-					Monto = salarioBruto * ObtenerPorcentajeIngreso(t.Id)
-				}).ToList();
-
-				var deduccionesTotales = detallesDeducciones.Sum(d => d.Monto);
-				var ingresosTotales = detallesIngresos.Sum(i => i.Monto);
-				var salarioNeto = salarioBruto + ingresosTotales - deduccionesTotales;
-
-				todasLasNominas.Add(new Nomina
-				{
-					Empleado = empleado,
-					EmpleadoId = empleado.Id,
-					SalarioBruto = salarioBruto,
-					TotalDeducciones = deduccionesTotales,
-					TotalIngresos = ingresosTotales,
-					SalarioNeto = salarioNeto,
-					FechaGeneracion = DateTime.Now,
-					DetallesDeducciones = detallesDeducciones,
-					DetallesIngresos = detallesIngresos
-				});
-			}
-
-			return todasLasNominas;
-		}
-
-
-		public IEnumerable<Empleado> ObtenerEmpleados()
-		{
-			return _empleadoRepository.GetAll().ToList();
-		}
-
-
-		private decimal ObtenerPorcentajeDeduccion(int deduccionId)
-		{
-			var deduccion = _deduccionRepository.Get(d => d.Id == deduccionId);
-			if (deduccion == null) throw new Exception("Tipo de deducción no encontrado");
-
-			return deduccion.Porcentaje / 100;
-		}
-
-		private decimal ObtenerPorcentajeIngreso(int ingresoId)
-		{
-			var ingreso = _ingresoRepository.Get(i => i.Id == ingresoId);
-			if (ingreso == null) throw new Exception("Tipo de ingreso no encontrado");
-
-			return ingreso.Porcentaje / 100;
-		}
-	}
-
-
-
-
+            return new Nomina
+            {
+                EmpleadoId = empleadoId,
+                SalarioBruto = salarioBruto,
+                TotalDeducciones = deduccionesTotales,
+                TotalIngresos = ingresosTotales,
+                SalarioNeto = salarioNeto,
+                FechaGeneracion = DateTime.Now,
+                IdAsiento = null,
+                Empleado = empleado
+            };
+        }
+    }
 }

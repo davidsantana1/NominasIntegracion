@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Nominas.DataAccess.Data;
 
@@ -11,16 +12,46 @@ using Nominas.DataAccess.Data;
 namespace Nominas.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250705180010_CambioTipoTransaccionAEnum")]
+    partial class CambioTipoTransaccionAEnum
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.10")
+                .HasAnnotation("ProductVersion", "8.0.8")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+
+            modelBuilder.Entity("DetalleDeduccion", b =>
+                {
+                    b.Property<decimal>("Monto")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.ToTable((string)null);
+
+                    b.ToView(null, (string)null);
+                });
+
+            modelBuilder.Entity("DetalleIngreso", b =>
+                {
+                    b.Property<decimal>("Monto")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.ToTable((string)null);
+
+                    b.ToView(null, (string)null);
+                });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
                 {
@@ -272,34 +303,6 @@ namespace Nominas.DataAccess.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Nominas.Models.DetalleDeduccion", b =>
-                {
-                    b.Property<decimal>("Monto")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("Nombre")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.ToTable((string)null);
-
-                    b.ToView(null, (string)null);
-                });
-
-            modelBuilder.Entity("Nominas.Models.DetalleIngreso", b =>
-                {
-                    b.Property<decimal>("Monto")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("Nombre")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.ToTable((string)null);
-
-                    b.ToView(null, (string)null);
-                });
-
             modelBuilder.Entity("Nominas.Models.Empleado", b =>
                 {
                     b.Property<int>("Id")
@@ -375,9 +378,6 @@ namespace Nominas.DataAccess.Migrations
 
                     b.Property<DateTime>("FechaGeneracion")
                         .HasColumnType("datetime2");
-
-                    b.Property<int?>("IdAsiento")
-                        .HasColumnType("int");
 
                     b.Property<decimal>("SalarioBruto")
                         .HasColumnType("decimal(18,2)");
@@ -500,6 +500,17 @@ namespace Nominas.DataAccess.Migrations
                             Fecha = new DateTime(2024, 9, 5, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Ingreso = 1200m,
                             Monto = 1050m,
+                            TipoTransaccion = 0
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Deduccion = 50m,
+                            EmpleadoId = 1,
+                            Estado = "Pendiente",
+                            Fecha = new DateTime(2024, 9, 10, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Ingreso = 500m,
+                            Monto = 450m,
                             TipoTransaccion = 0
                         });
                 });
