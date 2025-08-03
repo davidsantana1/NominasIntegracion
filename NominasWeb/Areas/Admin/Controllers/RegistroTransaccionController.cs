@@ -13,16 +13,21 @@ namespace NominasWeb.Areas.Admin.Controllers
     public class RegistroTransaccionController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;
+
         public RegistroTransaccionController(IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
         }
 
-        public IActionResult Index(TipoTransaccion? tipoFiltro = null, int? empleadoId = null,
-                         DateTime? fechaInicio = null, DateTime? fechaFin = null)
+        public IActionResult Index(
+            TipoTransaccion? tipoFiltro = null,
+            int? empleadoId = null,
+            DateTime? fechaInicio = null,
+            DateTime? fechaFin = null
+        )
         {
-            IQueryable<RegistroTransaccion> query = _unitOfWork.RegistroTransaccion
-                .GetAll()
+            IQueryable<RegistroTransaccion> query = _unitOfWork
+                .RegistroTransaccion.GetAll()
                 .Include(e => e.Empleado);
 
             if (tipoFiltro.HasValue)
@@ -42,14 +47,10 @@ namespace NominasWeb.Areas.Admin.Controllers
             ViewBag.FechaInicio = fechaInicio;
             ViewBag.FechaFin = fechaFin;
 
-            ViewBag.EmpleadosList = new SelectList(
-                _unitOfWork.Empleado.GetAll(),
-                "Id",
-                "Nombre");
+            ViewBag.EmpleadosList = new SelectList(_unitOfWork.Empleado.GetAll(), "Id", "Nombre");
 
             return View(query.ToList());
         }
-
 
         [Authorize(Roles = SD.Role_Admin)]
         public IActionResult Crear()
@@ -67,6 +68,29 @@ namespace NominasWeb.Areas.Admin.Controllers
         {
             obj.Empleado = _unitOfWork.Empleado.Get(u => u.Id == obj.EmpleadoId);
 
+            // Validaciones adicionales
+            if (
+                obj.TipoTransaccion == TipoTransaccion.Ingreso
+                && (!obj.Ingreso.HasValue || obj.Ingreso <= 0)
+            )
+            {
+                ModelState.AddModelError(
+                    "Ingreso",
+                    "Para transacciones de ingreso, el monto debe ser mayor a 0."
+                );
+            }
+
+            if (
+                obj.TipoTransaccion == TipoTransaccion.Deduccion
+                && (!obj.Deduccion.HasValue || obj.Deduccion <= 0)
+            )
+            {
+                ModelState.AddModelError(
+                    "Deduccion",
+                    "Para transacciones de deducción, el monto debe ser mayor a 0."
+                );
+            }
+
             if (ModelState.IsValid)
             {
                 _unitOfWork.RegistroTransaccion.Add(obj);
@@ -76,6 +100,7 @@ namespace NominasWeb.Areas.Admin.Controllers
             }
             return View(obj);
         }
+
         [Authorize(Roles = SD.Role_Admin)]
         public IActionResult Editar(int? id)
         {
@@ -87,7 +112,9 @@ namespace NominasWeb.Areas.Admin.Controllers
             {
                 return NotFound();
             }
-            RegistroTransaccion? RegistroTransaccionFromDb = _unitOfWork.RegistroTransaccion.Get(u => u.Id == id);
+            RegistroTransaccion? RegistroTransaccionFromDb = _unitOfWork.RegistroTransaccion.Get(
+                u => u.Id == id
+            );
             if (RegistroTransaccionFromDb == null)
             {
                 return NotFound();
@@ -99,6 +126,29 @@ namespace NominasWeb.Areas.Admin.Controllers
         [Authorize(Roles = SD.Role_Admin)]
         public IActionResult Editar(RegistroTransaccion obj)
         {
+            // Validaciones adicionales
+            if (
+                obj.TipoTransaccion == TipoTransaccion.Ingreso
+                && (!obj.Ingreso.HasValue || obj.Ingreso <= 0)
+            )
+            {
+                ModelState.AddModelError(
+                    "Ingreso",
+                    "Para transacciones de ingreso, el monto debe ser mayor a 0."
+                );
+            }
+
+            if (
+                obj.TipoTransaccion == TipoTransaccion.Deduccion
+                && (!obj.Deduccion.HasValue || obj.Deduccion <= 0)
+            )
+            {
+                ModelState.AddModelError(
+                    "Deduccion",
+                    "Para transacciones de deducción, el monto debe ser mayor a 0."
+                );
+            }
+
             if (ModelState.IsValid)
             {
                 _unitOfWork.RegistroTransaccion.Update(obj);
@@ -108,6 +158,7 @@ namespace NominasWeb.Areas.Admin.Controllers
             }
             return View();
         }
+
         [Authorize(Roles = SD.Role_Admin)]
         public IActionResult Eliminar(int? id)
         {
@@ -119,7 +170,9 @@ namespace NominasWeb.Areas.Admin.Controllers
             {
                 return NotFound();
             }
-            RegistroTransaccion? RegistroTransaccionFromDb = _unitOfWork.RegistroTransaccion.Get(u => u.Id == id);
+            RegistroTransaccion? RegistroTransaccionFromDb = _unitOfWork.RegistroTransaccion.Get(
+                u => u.Id == id
+            );
             if (RegistroTransaccionFromDb == null)
             {
                 return NotFound();

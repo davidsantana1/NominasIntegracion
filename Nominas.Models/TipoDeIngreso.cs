@@ -6,12 +6,17 @@ namespace Nominas.Models;
 public class TipoDeIngreso
 {
     public int Id { get; set; }
+
     [Required]
     public string Nombre { get; set; }
+
     [DisplayName("Depende de Salario")]
     [Required]
     public bool DependeDeSalario { get; set; }
+
     [Required]
     public bool Estado { get; set; }
+
+    [Range(0.01, 100.00, ErrorMessage = "El porcentaje debe estar entre 0.01 y 100")]
     public decimal Porcentaje { get; set; }
 }

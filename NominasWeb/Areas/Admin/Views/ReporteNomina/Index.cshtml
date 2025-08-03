@@ -1,126 +1,172 @@
 ﻿@model IEnumerable<Nominas.Models.Nomina>
-@Html.AntiForgeryToken()
+  @Html.AntiForgeryToken()
 
-<div class="card shadow border-0 mt-4">
+  <div class="card shadow border-0 mt-4">
     <div class="card-header bg-secondary bg-gradient ml-0 py-3">
-        <div class="col-12 text-center">
-            <h2 class="text-white py-2">Reporte de Nóminas</h2>
-        </div>
+      <div class="col-12 text-center">
+        <h2 class="text-white py-2">Reporte de Nóminas</h2>
+      </div>
     </div>
     <div class="card-body p-4">
-
-        <div class="row mb-4">
-            <div class="col-md-8">
-                <form asp-action="Index" method="get" class="row g-3 align-items-end">
-                    <div class="col-sm-5">
-                        <label for="fechaDesde" class="form-label"><strong>Desde Fecha</strong></label>
-                        <input type="date" class="form-control" id="fechaDesde" name="fechaDesde" value="@ViewBag.FechaDesde">
-                    </div>
-                    <div class="col-sm-5">
-                        <label for="fechaHasta" class="form-label"><strong>Hasta Fecha</strong></label>
-                        <input type="date" class="form-control" id="fechaHasta" name="fechaHasta" value="@ViewBag.FechaHasta">
-                    </div>
-                    <div class="col-sm-2">
-                        <button type="submit" class="btn btn-primary w-100" title="Filtrar">🔎</button>
-                    </div>
-                </form>
+      <div class="row mb-4">
+        <div class="col-md-8">
+          <form asp-action="Index" method="get" class="row g-3 align-items-end">
+            <div class="col-sm-5">
+              <label for="fechaDesde" class="form-label"
+                ><strong>Desde Fecha</strong></label
+              >
+              <input
+                type="date"
+                class="form-control"
+                id="fechaDesde"
+                name="fechaDesde"
+                value="@ViewBag.FechaDesde"
+              />
             </div>
-
-            <div class="col-md-4 d-flex align-items-end">
-                <form asp-action="GenerarYGuardarNominas" method="post" class="w-100">
-                    @Html.AntiForgeryToken()
-                    <button type="submit" class="btn btn-warning w-100"
-                            onclick="return confirm('Esto generará la nómina para los empleados pendientes del mes actual. ¿Deseas continuar?')">
-                        Generar Nómina del Mes
-                    </button>
-                </form>
+            <div class="col-sm-5">
+              <label for="fechaHasta" class="form-label"
+                ><strong>Hasta Fecha</strong></label
+              >
+              <input
+                type="date"
+                class="form-control"
+                id="fechaHasta"
+                name="fechaHasta"
+                value="@ViewBag.FechaHasta"
+              />
             </div>
+            <div class="col-sm-2">
+              <button
+                type="submit"
+                class="btn btn-primary w-100"
+                title="Filtrar"
+              >
+                🔎
+              </button>
+            </div>
+          </form>
         </div>
 
-        @if (Model != null && Model.Any())
-        {
-            <div class="table-responsive">
-                <table class="table table-bordered table-striped">
-                    <thead class="table-dark">
-                        <tr>
-                            <th>Id Transacción</th>
-                            <th>Descripción</th>
-                            <th>Fecha</th>
-                            <th>Monto Total</th>
-                            <th>Id Asiento</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var nomina in Model)
-                        {
-                            <tr>
-                                <td>@nomina.Id</td>
-                                <td>Pago de Nóminas</td>
-                                <td>@nomina.FechaGeneracion.ToString("dd/MM/yyyy")</td>
-                                <td>RD$ @nomina.SalarioNeto.ToString("N2")</td>
-                                <td>@nomina.IdAsiento</td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
+        <div class="col-md-4 d-flex align-items-end">
+          <form asp-action="GenerarYGuardarNominas" method="post" class="w-100">
+            @Html.AntiForgeryToken()
+            <button
+              type="submit"
+              class="btn btn-warning w-100"
+              onclick="return confirm('Esto generará la nómina para los empleados pendientes del mes actual. ¿Deseas continuar?')"
+            >
+              Generar Nómina del Mes
+            </button>
+          </form>
+        </div>
+      </div>
 
-            <div class="text-end mt-4">
-                <button type="button" id="btnContabilizar" class="btn btn-success">Contabilizar</button>
-            </div>
-        }
-        else
-        {
-            <p class="text-center">No hay datos de nómina disponibles. Intenta con otro rango de fechas o genera la nómina del mes.</p>
-        }
-    </div>
-</div>
-
-@section Scripts {
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const btnContabilizar = document.getElementById('btnContabilizar');
-
-            if (!btnContabilizar) {
-                return;
+      @if (Model != null && Model.Any()) {
+      <div class="table-responsive">
+        <table class="table table-bordered table-striped">
+          <thead class="table-dark">
+            <tr>
+              <th>Id Transacción</th>
+              <th>Descripción</th>
+              <th>Fecha</th>
+              <th>Monto Total</th>
+              <th>Id Asiento</th>
+            </tr>
+          </thead>
+          <tbody>
+            @foreach (var nomina in Model) {
+            <tr>
+              <td>@nomina.Id</td>
+              <td>Pago de Nóminas</td>
+              <td>@nomina.FechaGeneracion.ToString("dd/MM/yyyy")</td>
+              <td>RD$ @nomina.SalarioNeto.ToString("N2")</td>
+              <td>@nomina.IdAsiento</td>
+            </tr>
             }
+          </tbody>
+        </table>
+      </div>
 
-            btnContabilizar.addEventListener('click', function () {
-                const fechaDesde = document.getElementById('fechaDesde').value;
-                const fechaHasta = document.getElementById('fechaHasta').value;
+      <div class="text-end mt-4">
+        <button type="button" id="btnContabilizar" class="btn btn-success">
+          Contabilizar
+        </button>
+      </div>
+      } else {
+      <p class="text-center">
+        No hay datos de nómina disponibles. Intenta con otro rango de fechas o
+        genera la nómina del mes.
+      </p>
+      }
+    </div>
+  </div>
 
-                if (!fechaDesde || !fechaHasta) {
-                    alert('Por favor, selecciona un rango de fechas válido.');
-                    return;
-                }
+  @section Scripts {
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const btnContabilizar = document.getElementById('btnContabilizar')
 
-                if (!confirm('¿Estás seguro de que deseas contabilizar el período seleccionado?')) {
-                    return;
-                }
+      if (!btnContabilizar) {
+        return
+      }
 
-                const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+      btnContabilizar.addEventListener('click', function () {
+        const fechaDesde = document.getElementById('fechaDesde').value
+        const fechaHasta = document.getElementById('fechaHasta').value
 
-                fetch('/Admin/ReporteNomina/Contabilizar', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'RequestVerificationToken': token
-                    },
-                    body: JSON.stringify({ fechaDesde: fechaDesde, fechaHasta: fechaHasta })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert('Éxito: ' + data.message);
-                    } else {
-                        alert('Error: ' + data.message);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error en la llamada fetch:', error);
-                    alert('Hubo un error de conexión al intentar contabilizar.');
-                });
-            });
-        });
-    </script>
-}
+        if (!fechaDesde || !fechaHasta) {
+          alert('Por favor, selecciona un rango de fechas válido.')
+          return
+        }
+
+        if (
+          !confirm(
+            '¿Estás seguro de que deseas contabilizar el período seleccionado?'
+          )
+        ) {
+          return
+        }
+
+        const token = document.querySelector(
+          'input[name="__RequestVerificationToken"]'
+        ).value
+
+        // Mostrar indicador de carga
+        btnContabilizar.disabled = true
+        btnContabilizar.textContent = 'Procesando...'
+
+        fetch('/Admin/ReporteNomina/Contabilizar', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            RequestVerificationToken: token,
+          },
+          body: JSON.stringify({
+            fechaDesde: fechaDesde,
+            fechaHasta: fechaHasta,
+          }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.success) {
+              alert('Éxito: ' + data.message)
+              // Recargar la página para mostrar los datos actualizados
+              window.location.reload()
+            } else {
+              alert('Error: ' + data.message)
+            }
+          })
+          .catch((error) => {
+            console.error('Error en la llamada fetch:', error)
+            alert('Hubo un error de conexión al intentar contabilizar.')
+          })
+          .finally(() => {
+            // Restaurar el botón
+            btnContabilizar.disabled = false
+            btnContabilizar.textContent = 'Contabilizar'
+          })
+      })
+    })
+  </script>
+  }</Nominas.Models.Nomina
+>
