@@ -1,9 +1,10 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using System.Text.Json;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Nominas.DataAccess.Data;
 using Nominas.DataAccess.Repository;
+using Nominas.Models.DTOs;
 using Nominas.Utility;
-using System.Text.Json;
 
 namespace NominasWeb.Areas.Admin.Controllers
 {
@@ -14,12 +15,19 @@ namespace NominasWeb.Areas.Admin.Controllers
         private readonly NominaService _nominaService;
         private readonly ApplicationDbContext _db;
         private readonly IHttpClientFactory _httpClientFactory;
+        private readonly IConfiguration _configuration;
 
-        public ReporteNominaController(NominaService nominaService, ApplicationDbContext db, IHttpClientFactory httpClientFactory)
+        public ReporteNominaController(
+            NominaService nominaService,
+            ApplicationDbContext db,
+            IHttpClientFactory httpClientFactory,
+            IConfiguration configuration
+        )
         {
             _nominaService = nominaService;
             _db = db;
             _httpClientFactory = httpClientFactory;
+            _configuration = configuration;
         }
 
         public IActionResult Index(DateTime? fechaDesde, DateTime? fechaHasta)
@@ -35,14 +43,18 @@ namespace NominasWeb.Areas.Admin.Controllers
 
             try
             {
-                var reporteNomina = _nominaService.ObtenerNominasPorFecha(fechaDesde.Value, fechaHasta.Value);
+                var reporteNomina = _nominaService.ObtenerNominasPorFecha(
+                    fechaDesde.Value,
+                    fechaHasta.Value
+                );
                 ViewBag.FechaDesde = fechaDesde.Value.ToString("yyyy-MM-dd");
                 ViewBag.FechaHasta = fechaHasta.Value.ToString("yyyy-MM-dd");
                 return View(reporteNomina);
             }
             catch (Exception ex)
             {
-                var errorMessage = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
+                var errorMessage =
+                    ex.InnerException != null ? ex.InnerException.Message : ex.Message;
                 ViewBag.ErrorMessage = errorMessage;
                 return View("Error");
             }
@@ -59,16 +71,19 @@ namespace NominasWeb.Areas.Admin.Controllers
                 if (nominasCreadas > 0)
                 {
                     _db.SaveChanges();
-                    TempData["success"] = $"{nominasCreadas} nómina(s) nueva(s) ha(n) sido guardada(s).";
+                    TempData["success"] =
+                        $"{nominasCreadas} nómina(s) nueva(s) ha(n) sido guardada(s).";
                 }
                 else
                 {
-                    TempData["info"] = "No se generaron nóminas nuevas. Ya todas estaban calculadas para el mes actual.";
+                    TempData["info"] =
+                        "No se generaron nóminas nuevas. Ya todas estaban calculadas para el mes actual.";
                 }
             }
             catch (Exception ex)
             {
-                var errorMessage = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
+                var errorMessage =
+                    ex.InnerException != null ? ex.InnerException.Message : ex.Message;
                 TempData["error"] = $"Error al generar las nóminas: {errorMessage}";
             }
             return RedirectToAction("Index");
@@ -80,61 +95,140 @@ namespace NominasWeb.Areas.Admin.Controllers
         {
             if (fechas == null || fechas.FechaDesde == default || fechas.FechaHasta == default)
             {
-                return Json(new { success = false, message = "Las fechas proporcionadas son inválidas." });
+                return Json(
+                    new { success = false, message = "Las fechas proporcionadas son inválidas." }
+                );
             }
 
             try
             {
-                // 1. Obtener las nóminas del período
-                var nominasDelPeriodo = _nominaService.ObtenerNominasPorFecha(fechas.FechaDesde, fechas.FechaHasta).ToList();
+                // 1. Obtener las nóminas del período que NO tienen ID de asiento asignado
+                var nominasDelPeriodo = _nominaService
+                    .ObtenerNominasPorFecha(fechas.FechaDesde, fechas.FechaHasta)
+                    .Where(n => n.IdAsiento == null || n.IdAsiento == 0) // Solo nóminas sin asiento asignado
+                    .ToList();
+
                 if (!nominasDelPeriodo.Any())
                 {
-                    return Json(new { success = false, message = "No hay nóminas para contabilizar en el período seleccionado." });
+                    return Json(
+                        new
+                        {
+                            success = false,
+                            message = "No hay nóminas pendientes de contabilizar en el período seleccionado. Todas ya han sido contabilizadas.",
+                        }
+                    );
                 }
 
-                // 2. Calcular el monto total y crear el objeto a enviar (sin cambios)
+                // 2. Calcular el monto total y crear los objetos a enviar según la especificación de la API
                 var montoTotal = nominasDelPeriodo.Sum(n => n.SalarioNeto);
-                var dataParaEnviar = new AsientoContableDto
+
+                // Crear el asiento de débito (cuenta 70)
+                var asientoDebito = new AsientoContableDto
                 {
-                    IdAuxiliar = 2,
-                    Descripcion = $"Asiento de Nóminas correspondiente al período {fechas.FechaHasta:yyyy-MM-dd}",
-                    CuentaDb = 71,
-                    CuentaCr = 70,
-                    MontoAsiento = montoTotal
+                    Descripcion =
+                        $"Asiento de Nóminas correspondiente al período {fechas.FechaHasta:yyyy-MM-dd}",
+                    CuentaId = 70,
+                    AuxiliarId = 1, // Valor por defecto
+                    TipoMovimiento = "DB", // Débito
+                    FechaAsiento = fechas.FechaHasta.ToString("yyyy-MM-dd"),
+                    MontoAsiento = montoTotal,
+                };
+
+                // Crear el asiento de crédito (cuenta 71)
+                var asientoCredito = new AsientoContableDto
+                {
+                    Descripcion =
+                        $"Asiento de Nóminas correspondiente al período {fechas.FechaHasta:yyyy-MM-dd}",
+                    CuentaId = 71,
+                    AuxiliarId = 1, // Valor por defecto
+                    TipoMovimiento = "CR", // Crédito
+                    FechaAsiento = fechas.FechaHasta.ToString("yyyy-MM-dd"),
+                    MontoAsiento = montoTotal,
                 };
 
                 // 3. Enviar a la API externa
                 var httpClient = _httpClientFactory.CreateClient();
-                string apiUrl = "URL_DE_TU_API_AQUI";
 
-                HttpResponseMessage apiResponse = await httpClient.PostAsJsonAsync(apiUrl, dataParaEnviar);
+                // Obtener configuración de la API
+                var apiConfig = new AccountingApiConfig();
+                _configuration.GetSection("AccountingApi").Bind(apiConfig);
 
-                if (apiResponse.IsSuccessStatusCode)
+                string apiUrl = $"{apiConfig.BaseUrl}{apiConfig.Endpoints.EntradasContables}";
+
+                // Configurar headers con autenticación
+                httpClient.DefaultRequestHeaders.Add("x-api-key", apiConfig.ApiKey);
+
+                // 3. Enviar ambos asientos a la API externa
+                bool ambosExitosos = true;
+                string errorMessage = "";
+
+                // Enviar asiento de débito
+                var jsonDebito = System.Text.Json.JsonSerializer.Serialize(asientoDebito);
+                Console.WriteLine($"Enviando asiento débito: {jsonDebito}");
+
+                HttpResponseMessage apiResponseDebito = await httpClient.PostAsJsonAsync(
+                    apiUrl,
+                    asientoDebito
+                );
+                if (!apiResponseDebito.IsSuccessStatusCode)
                 {
-                    // 4. Leer y analizar la respuesta de la API
-                    string responseBody = await apiResponse.Content.ReadAsStringAsync();
-                    int idAsientoDesdeApi;
+                    string errorDebito = await apiResponseDebito.Content.ReadAsStringAsync();
+                    Console.WriteLine($"Error en asiento débito: {errorDebito}");
+                    errorMessage += $"Error en asiento débito: {errorDebito}. ";
+                    ambosExitosos = false;
+                }
 
-                    using (JsonDocument doc = JsonDocument.Parse(responseBody))
+                // Enviar asiento de crédito
+                var jsonCredito = System.Text.Json.JsonSerializer.Serialize(asientoCredito);
+                Console.WriteLine($"Enviando asiento crédito: {jsonCredito}");
+
+                HttpResponseMessage apiResponseCredito = await httpClient.PostAsJsonAsync(
+                    apiUrl,
+                    asientoCredito
+                );
+                if (!apiResponseCredito.IsSuccessStatusCode)
+                {
+                    string errorCredito = await apiResponseCredito.Content.ReadAsStringAsync();
+                    Console.WriteLine($"Error en asiento crédito: {errorCredito}");
+                    errorMessage += $"Error en asiento crédito: {errorCredito}. ";
+                    ambosExitosos = false;
+                }
+
+                if (ambosExitosos)
+                {
+                    // Leer la respuesta del asiento de débito para obtener el ID
+                    string responseBodyDebito = await apiResponseDebito.Content.ReadAsStringAsync();
+                    int idAsientoDesdeApi = 999; // Valor por defecto
+
+                    try
                     {
-                        JsonElement root = doc.RootElement;
+                        using (JsonDocument doc = JsonDocument.Parse(responseBodyDebito))
+                        {
+                            JsonElement root = doc.RootElement;
 
-                        // Intenta obtener el ID. Abajo hay varios ejemplos.
-                        // Descomenta el que se parezca más a la respuesta que esperas.
-
-                        // Ejemplo 1: si la respuesta es {"id": 123} o {"asientoId": 123}
-                        // idAsientoDesdeApi = root.GetProperty("id").GetInt32();
-
-                        // Ejemplo 2: si la respuesta es {"data": {"id": 123}}
-                        // idAsientoDesdeApi = root.GetProperty("data").GetProperty("id").GetInt32();
-
-                        // Ejemplo 3: si la respuesta es solo el número "123"
-                        // idAsientoDesdeApi = root.GetInt32();
-
-                        // Por ahora, usaremos un valor de ejemplo. Reemplázalo con una de las líneas de arriba.
-                        idAsientoDesdeApi = 999; // <--- VALOR DE PRUEBA, CAMBIAR LUEGO
+                            // Intentar obtener el ID del asiento desde la respuesta
+                            if (
+                                root.TryGetProperty("data", out JsonElement dataElement)
+                                && dataElement.TryGetProperty("id", out JsonElement idElement)
+                            )
+                            {
+                                idAsientoDesdeApi = idElement.GetInt32();
+                            }
+                            else if (root.TryGetProperty("id", out JsonElement directIdElement))
+                            {
+                                idAsientoDesdeApi = directIdElement.GetInt32();
+                            }
+                        }
+                    }
+                    catch (JsonException ex)
+                    {
+                        Console.WriteLine(
+                            $"Error al procesar la respuesta del asiento débito: {ex.Message}"
+                        );
+                        // Continuar con el ID por defecto
                     }
 
+                    // Actualizar las nóminas con el ID del asiento
                     foreach (var nomina in nominasDelPeriodo)
                     {
                         nomina.IdAsiento = idAsientoDesdeApi;
@@ -142,21 +236,38 @@ namespace NominasWeb.Areas.Admin.Controllers
 
                     await _db.SaveChangesAsync();
 
-
-                    return Json(new { success = true, message = $"Nóminas contabilizadas con el ID de Asiento: {idAsientoDesdeApi}." });
+                    return Json(
+                        new
+                        {
+                            success = true,
+                            message = $"Nóminas contabilizadas exitosamente. ID de Asiento: {idAsientoDesdeApi}",
+                        }
+                    );
                 }
                 else
                 {
-                    string error = await apiResponse.Content.ReadAsStringAsync();
-                    return Json(new { success = false, message = $"Error de la API de contabilidad: {error}" });
+                    return Json(
+                        new
+                        {
+                            success = false,
+                            message = $"Error de la API de contabilidad: {errorMessage}",
+                        }
+                    );
                 }
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = $"Error interno del servidor: {ex.InnerException?.Message ?? ex.Message}" });
+                return Json(
+                    new
+                    {
+                        success = false,
+                        message = $"Error interno del servidor: {ex.InnerException?.Message ?? ex.Message}",
+                    }
+                );
             }
         }
     }
+
     public class FechasDto
     {
         public DateTime FechaDesde { get; set; }
