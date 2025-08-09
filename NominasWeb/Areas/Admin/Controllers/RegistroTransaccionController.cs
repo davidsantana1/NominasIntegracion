@@ -66,7 +66,32 @@ namespace NominasWeb.Areas.Admin.Controllers
         [Authorize(Roles = SD.Role_Admin)]
         public IActionResult Crear(RegistroTransaccion obj)
         {
+            // Repoblar dropdown de empleados para el caso de errores de validación
+            var empleados = _unitOfWork.Empleado.GetAll();
+            ViewBag.empleados = new SelectList(empleados, "Id", "Nombre");
+
             obj.Empleado = _unitOfWork.Empleado.Get(u => u.Id == obj.EmpleadoId);
+
+            // Calcular el monto en base al tipo de transacción y limpiar el otro campo
+            if (obj.TipoTransaccion == TipoTransaccion.Ingreso)
+            {
+                obj.Monto = obj.Ingreso ?? 0m;
+                obj.Deduccion = null;
+            }
+            else if (obj.TipoTransaccion == TipoTransaccion.Deduccion)
+            {
+                obj.Monto = obj.Deduccion ?? 0m;
+                obj.Ingreso = null;
+            }
+
+            // Establecer una fecha por defecto si no viene informada
+            if (obj.Fecha == default)
+            {
+                obj.Fecha = DateTime.Now;
+            }
+
+            // Eliminar posible error de validación previo de Monto (campo no viene en el formulario)
+            ModelState.Remove(nameof(RegistroTransaccion.Monto));
 
             // Validaciones adicionales
             if (
@@ -126,6 +151,30 @@ namespace NominasWeb.Areas.Admin.Controllers
         [Authorize(Roles = SD.Role_Admin)]
         public IActionResult Editar(RegistroTransaccion obj)
         {
+            // Repoblar dropdown de empleados para el caso de errores de validación
+            var empleados = _unitOfWork.Empleado.GetAll();
+            ViewBag.empleados = new SelectList(empleados, "Id", "Nombre");
+
+            // Calcular el monto en base al tipo de transacción y limpiar el otro campo
+            if (obj.TipoTransaccion == TipoTransaccion.Ingreso)
+            {
+                obj.Monto = obj.Ingreso ?? 0m;
+                obj.Deduccion = null;
+            }
+            else if (obj.TipoTransaccion == TipoTransaccion.Deduccion)
+            {
+                obj.Monto = obj.Deduccion ?? 0m;
+                obj.Ingreso = null;
+            }
+
+            // Establecer una fecha por defecto si no viene informada
+            if (obj.Fecha == default)
+            {
+                obj.Fecha = DateTime.Now;
+            }
+
+            // Eliminar posible error de validación previo de Monto (campo no viene en el formulario)
+            ModelState.Remove(nameof(RegistroTransaccion.Monto));
             // Validaciones adicionales
             if (
                 obj.TipoTransaccion == TipoTransaccion.Ingreso
@@ -156,7 +205,7 @@ namespace NominasWeb.Areas.Admin.Controllers
                 TempData["success"] = "Transacción actualizada correctamente.";
                 return RedirectToAction("Index");
             }
-            return View();
+            return View(obj);
         }
 
         [Authorize(Roles = SD.Role_Admin)]
